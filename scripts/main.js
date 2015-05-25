@@ -5,8 +5,9 @@ window.onload = function() {
 	//var parent = document.body,
 		element = this.element = document.createElement('div'),
 		colors = ['#61AC27', '#FF6600', '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#03A9F4', '#FF5722'],
-		i = 10,
+		i = 4,
 		animationOffset = 0,
+		rotationIncrement = 360/i,
 
 		createDot = function() {
 			var dot = document.createElement('div');
@@ -23,12 +24,15 @@ window.onload = function() {
 			return dot;
 		},
 		dots = [],
-		tl = new TimelineMax({
+		
+		animation = new TimelineLite(),
+
+		openingDots = new TimelineMax({
 			//paused: true
-			repeat: 2,
+			repeat: 6,
 			//repeatDeplay: 0.01
 		}),
-		dot, j, dotSize, radius;
+		dot, j, dotSize, radius, tl, closingDots;
 
 		parent.appendChild(element);
 		TweenLite.set(element, {
@@ -39,11 +43,52 @@ window.onload = function() {
 			perspective: 600
 		});
 
+		//four dots circling around each other
+		while(--i > -1) {
+			dotSize = 80;
+			radius = dotSize/2;
+
+			var colorIndex = Math.floor(Math.random()*(colors.length));
+			dot = createDot();
+			dots.unshift(dot);
+
+			TweenLite.set(dot, {
+				transformOrigin: (-(radius-(dotSize/2))+'px 50%'),
+				x: radius,
+				rotation: i*rotationIncrement,
+				backgroundColor: colors[colorIndex],
+				opacity: 0.5
+			});
+
+			openingDots.to(dot, 2, {
+				rotation: "+=360",
+				ease: Power2.easeInOut
+			}, animationOffset)
+		}
+
+		animation.add(openingDots, 0);
+
+		//Removing the initial dots 
+		closingDots = new TimelineLite({
+		});
+		closingDots.set(dots, {
+			opacity: 0}, 1);
+		animation.add(closingDots);
+
+		animationOffset = 1;
+		i = 6;
+
+		// Animating dots each from one side 
 		while (--i > -1) {
 			//dotSize = Math.floor(Math.random()*(22)+10);
-			dotSize = 24;
+			dotSize = 80;
 			//radius = Math.floor(Math.random()*(32));
 			radius = dotSize/2;
+
+			tl = new TimelineMax({
+				repeat: 2
+			});
+
 			for(j=0; j<2; j++)
 			{
 				var colorIndex = Math.floor(Math.random()*(colors.length));
@@ -80,6 +125,7 @@ window.onload = function() {
 					}, 6*animationOffset+3);
 			}
 			animationOffset += 0.25;
+			animation.add(tl, j*0.07);
 		}
 
 		if (TweenLite.render) {
