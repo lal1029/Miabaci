@@ -60,6 +60,7 @@ bead.prototype.drawBead = function drawBead(options) {
 		//element = options.element || document.createElement("div"),
 		xPos = options.xPos || 0,
 		yPos = options.yPos || 0,
+		opacity = options.opacity || 0.9,
 		aBead;
 
 	aBead = document.createElement('div');
@@ -70,6 +71,7 @@ bead.prototype.drawBead = function drawBead(options) {
 		x:xPos,
 		y:yPos,
 		backgroundColor: color,
+		opacity: opacity,
 		borderRadius: '50% 50%',
 		force3D: true,
 		position: 'absolute'
@@ -89,6 +91,8 @@ var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
 	this.element = document.getElementById(abacusName);
 	this.elementResetButton = document.getElementById(abacusName+"Reset");
 	this.elementResetButton.addEventListener("click", this.reset.bind(this), false);
+	this.elementSubmitNumberButton = document.getElementById("submitNumber");
+	this.elementSubmitNumberButton.addEventListener("click", this.displayNumber.bind(this), false);
 	this.columns = columns;
 	this.topBeadCount = topBeadCount;
 	this.bottomBeadCount = bottomBeadCount;
@@ -136,8 +140,48 @@ abacus.prototype.reset = function() {
  * @param  int number - the value the abacus board needs to display
  * @return void
  */
-abacus.prototype.displayNumber = function(number) {
+abacus.prototype.displayNumber = function() {
+	//TODO: later on adding back the number parameter
+	var number = document.getElementById("number").value;
+	number = parseInt(number);
 
+	console.log("Number to display is: "+number);
+
+	//Reset the abacus board
+	this.reset();
+
+	for(var i=this.columns-1; i>=0; i--) {
+	 	var place = Math.pow(10, i);
+	 	var placeVal = Math.floor(number/place);
+	 	if (placeVal !== 0) {
+	 		var bottom = 0;
+	 		var top = 0;
+	 		if((placeVal-5) < 0) {
+	 			bottom = placeVal;
+	 		}
+	 		else if(placeVal-5>0) {
+	 			bottom = placeVal-5;
+	 			top = 1;
+	 		}
+	 		else if (placeVal-5 === 0) {
+	 			top = 1;
+	 		}
+
+	 		if(top === 1) {
+	 			this.topLevelNodeHeads[i].moveBead();
+	 		}
+
+	 		if (bottom > 0) {
+	 			var nodeToMove = this.bottomLevelNodeHeads[i];
+				for(var j=0; j<bottom-1; j++){
+					nodeToMove = nodeToMove.beadBelow;
+				}
+				nodeToMove.moveBead();
+	 		}
+
+	 		number = number%place; //the remainder will be used as the next value
+	 	}
+	}
 }	
 
 /**
@@ -163,7 +207,7 @@ abacus.prototype.fillBeads = function() {
 
 			if (head === null) {
 				head = newBead;
-				this.topLevelNodeHeads.unshift(head);
+				this.topLevelNodeHeads.push(head);
 			}
 			else {
 				var insertedNewBead = this.insertBead(head, newBead);
@@ -193,7 +237,7 @@ abacus.prototype.fillBeads = function() {
 			}
 		}
 
-		this.bottomLevelNodeHeads.unshift(head);
+		this.bottomLevelNodeHeads.push(head);
 	}
 
 	// For debugging
