@@ -1,52 +1,15 @@
 'use strict';
 
-//TODO: modify this to using SVG instead of CSS
-function createBead(options) {
-	options = options || {};
-	var dotWidth = options.dotWidth || 50,
-		dotHeight = options.dotHeight || 32, 
-		color = options.color || 'Brown',
-		//element = options.element || document.createElement("div"),
-		xPos = options.xPos || 0,
-		yPos = options.yPos || 0,
-		bead;
-
-	bead = document.createElement('div');
-	//element.appendChild(bead);
-	TweenLite.set(bead, {
-		width: dotWidth,
-		height: dotHeight,
-		x:xPos,
-		y:yPos,
-		backgroundColor: color,
-		borderRadius: '50% 50%',
-		force3D: true,
-		position: 'absolute'
-	});
-	return bead;
-}
-
-var debug = function(bead) {
-	console.log("Bead value: "+bead.value);
-	
-	if (bead.beadAbove === null) {
-		console.log(" - above: null")
-	}
-	else {
-		console.log(" - above: "+bead.beadAbove.value);
-	}
-
-	if (bead.beadBelow === null) {
-		console.log(" - below: null")
-	}
-	else {
-		console.log(" - below: "+bead.beadBelow.value);
-	}
-}
-
-var Bead = function(value, options, canMoveUp) {
+/**
+ * bead - a bead object on the abacus
+ * @param  int value     - how much value the bead is worth
+ * @param  obj options   - options attribute to the bead UI such as the size/color/position of the bead
+ * @param  bool canMoveUp - boolean to keep track of which direction the bead is able to move
+ * @return void         
+ */
+var bead = function(value, options, canMoveUp) {
 	this.value = value;
-	this.shape = createBead(options);
+	this.shape = this.drawBead(options);
 	this.beadAbove = null;
 	this.beadBelow = null;
 	this.canMoveUp = canMoveUp;
@@ -84,8 +47,48 @@ var Bead = function(value, options, canMoveUp) {
 	this.shape.addEventListener("click", this.moveBead, false);
 }
 
+/**
+ * drawBead - creates a div element to represent the bead
+ * @param  obj options - options attribute to the bead UI such as the size/color/position of the bead
+ * @return the bead div element created
+ */
+bead.prototype.drawBead = function drawBead(options) {
+	options = options || {};
+	var dotWidth = options.dotWidth || 50,
+		dotHeight = options.dotHeight || 32, 
+		color = options.color || 'Brown',
+		//element = options.element || document.createElement("div"),
+		xPos = options.xPos || 0,
+		yPos = options.yPos || 0,
+		aBead;
+
+	aBead = document.createElement('div');
+	//element.appendChild(bead);
+	TweenLite.set(aBead, {
+		width: dotWidth,
+		height: dotHeight,
+		x:xPos,
+		y:yPos,
+		backgroundColor: color,
+		borderRadius: '50% 50%',
+		force3D: true,
+		position: 'absolute'
+	});
+	return aBead;
+}
+
+/**
+ * abacus - representation of the abacus board
+ * @param  string abacusName - name of the abacus     
+ * @param  int columns - how many columns the abacus contain
+ * @param  int topBeadCount - number of beads on the top row of the abacus
+ * @param  int bottomBeadCount - number of beads on the bottom row of the abacus
+ * @return void 
+ */
 var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
 	this.element = document.getElementById(abacusName);
+	this.elementResetButton = document.getElementById(abacusName+"Reset");
+	this.elementResetButton.addEventListener("click", this.reset.bind(this), false);
 	this.columns = columns;
 	this.topBeadCount = topBeadCount;
 	this.bottomBeadCount = bottomBeadCount;
@@ -100,14 +103,47 @@ var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
 	//this.currVal = 0;
 }
 
-///InsertBead - Inserting a bead into the head of a doubly-linked list 
-// and return itself
+/**
+ * insertBead - inserting a bead into the head of a doubly-linked list 
+ * @param  bead headBead - the current head of the doubly-linked list
+ * @param  bead newBead - the new bead at the head of the doubly-linked list
+ * @return void
+ */
 abacus.prototype.insertBead = function(headBead, newBead) {
 	newBead.beadBelow = headBead;
 	headBead.beadAbove = newBead;
 	return newBead;
+}
+
+abacus.prototype.reset = function() {
+	for(var i=0; i<this.topLevelNodeHeads.length; i++) {
+		var currBead = this.topLevelNodeHeads[i];
+		if(currBead.canMoveUp) {
+			currBead.moveBead();
+		}
+	}
+
+	for(var j=0; j<this.bottomLevelNodeHeads.length; j++) {
+		var currBead = this.bottomLevelNodeHeads[j];
+		if(!currBead.canMoveUp) {
+			currBead.moveBead();
+		}
+	}
+}
+
+/**
+ * displayNumber - given a number, the abacus board will correctly display the configuration of the beads
+ * @param  int number - the value the abacus board needs to display
+ * @return void
+ */
+abacus.prototype.displayNumber = function(number) {
+
 }	
 
+/**
+ * fillBeads - 
+ * @return {[type]} [description]
+ */
 abacus.prototype.fillBeads = function() {
 	//Loop through the number of columns the abacus contains
 	for(var i=0; i<this.columns; i++)
@@ -122,18 +158,18 @@ abacus.prototype.fillBeads = function() {
 			var beadShapeOptions = {color: '#61AC27', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceTop+(j*beadHeight)};
 
 			var value = Math.pow(10, i)*5;
-			var newBead = new Bead(value, beadShapeOptions, false);
-			this.element.appendChild(newBead.shape);
+			var newBead = new bead(value, beadShapeOptions, false);
+			this.element.appendChild(newBead.shape);	
 
 			if (head === null) {
 				head = newBead;
+				this.topLevelNodeHeads.unshift(head);
 			}
 			else {
 				var insertedNewBead = this.insertBead(head, newBead);
 				head = insertedNewBead;
 			}
 		}
-		this.topLevelNodeHeads.unshift(head);
 
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
 		head = null;
@@ -145,7 +181,7 @@ abacus.prototype.fillBeads = function() {
 			var beadShapeOptions = {color: '#F44336', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom+(j*beadHeight)};
 
 			var value = Math.pow(10, i);
-			var newBead = new Bead(value, beadShapeOptions, true);
+			var newBead = new bead(value, beadShapeOptions, true);
 			this.element.appendChild(newBead.shape);
 
 			if (head === null) {
