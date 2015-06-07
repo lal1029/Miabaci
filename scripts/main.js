@@ -53,9 +53,8 @@ var Bead = function(value, options, canMoveUp) {
 	var self = this;
 
 	this.moveBead = function() {
-		console.log("hey bead click event registered");
-		// depending on the bead.canMoveUp property, animation bead movement and update the canMoveUp property
 		
+		// depending on the bead.canMoveUp property, animation bead movement and update the canMoveUp property
 		if(!self.canMoveUp) {
 			//moving the bead down
 			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(self.shape).webkitTransform);
@@ -82,89 +81,11 @@ var Bead = function(value, options, canMoveUp) {
 	 	self.canMoveUp = !self.canMoveUp;
 	}
 
-	//move function returns 1 if bead moved up, return 0 if it did not move at all, and returns -1 if bead moved down
-	/*this.move = function() {
-		var direction = 0;
-
-		console.log("\nTrying to move the bead");
-		console.log("Original bead values:");
-		debug(self);
-
-		//If there's space below the current bead, then move the bead downwards by exchanging position with the dummy bead
-		if(self.beadBelow !== null && self.beadBelow.value === 0) {		
-			console.log("Moving bead down...");
-			
-			var tempSelfBelowBelow = self.beadBelow.beadBelow;
-
-			//Taking care of connections with the node currently above it
-			if (self.beadAbove !== null) {
-				self.beadAbove.beadBelow = self.beadBelow;
-			}
-			self.beadBelow.beadAbove = self.beadAbove;
-
-			//Taking care of connection between the newly moved up dummy node and node that moved down
-			self.beadBelow.beadBelow = self;
-			self.beadAbove = self.beadBelow;
-
-			//Taking care of the connection below the dummy node
-			self.beadBelow = tempSelfBelowBelow;
-			if (self.beadBelow !== null) {
-				self.beadBelow.beadAbove = self;
-			}
-
-			//TODO: Code for actually moving the shape downwards
-			console.log("Dummy bead values:");
-			debug(self.beadAbove);
-			console.log("Updated bead values:");
-			debug(self);
-
-			direction = -1;
-		}
-		else if(self.beadAbove !== null && self.beadAbove.value === 0) { 
-			console.log("Moving bead up...");
-
-			var tempSelfAbove = self.beadAbove;
-			var tempSelfBelow = self.beadBelow;
-
-			//Taking care of connections with the node currently above it
-			if (self.beadAbove.beadAbove !== null) {
-				self.beadAbove.beadAbove.beadBelow = self;
-			}
-			self.beadAbove = self.beadAbove.beadAbove;
-			
-			//Taking care of connection between the newly moved up dummy node and node that moved down
-			tempSelfAbove.beadAbove = self;
-			self.beadBelow = tempSelfAbove;
-
-			//Taking care of the connection below the dummy node
-			if (tempSelfBelow !== null) {
-				tempSelfBelow.beadAbove = self.beadBelow;
-			}
-			self.beadBelow.beadBelow = tempSelfBelow;
-
-			//TODO: Code for actually moving the shape upwards
-			console.log("Bead moved up");
-			console.log("Dummy bead values:");
-			debug(self.beadBelow);
-			console.log("Updated bead values:");
-			debug(self);
-
-			direction = 1;
-		}
-		else {
-			console.log("Bead cannot be moved from current position");
-		}
-
-		self.updateBead(direction, self.value, self.shape);
-	}*/
-
 	this.shape.addEventListener("click", this.moveBead, false);
 }
 
-var Abacus = function(columns, topBeadCount, bottomBeadCount) {
-	//this.parent = document.body;
-	//this.parent = document.getElementById("abacusFrame");
-	this.element = document.getElementById("abacusFrame");
+var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
+	this.element = document.getElementById(abacusName);
 	this.columns = columns;
 	this.topBeadCount = topBeadCount;
 	this.bottomBeadCount = bottomBeadCount;
@@ -177,94 +98,20 @@ var Abacus = function(columns, topBeadCount, bottomBeadCount) {
 	this.beadYAxisSpaceBottom = 190;
 	this.beadYAxisMovementTop = 71;
 	//this.currVal = 0;
-	
-	var answer = document.getElementById("answer");
-
-	/*this.parent.appendChild(this.element);
-		TweenLite.set(this.element, {
-			top: '50%',
-			left: '50%',
-			position: 'fixed',
-			overflow: 'visible',
-			perspective: 600,
-		});*/
 }
 
 ///InsertBead - Inserting a bead into the head of a doubly-linked list 
 // and return itself
-Abacus.prototype.insertBead = function(headBead, newBead) {
+abacus.prototype.insertBead = function(headBead, newBead) {
 	newBead.beadBelow = headBead;
 	headBead.beadAbove = newBead;
 	return newBead;
 }	
 
-Abacus.prototype.fillBeads = function() {
-
-	/*var UpdateBeadTop = function(direction, value, beadShape) {
-		var answer = document.getElementById("answerTitle");
-		var answerVal = document.getElementById("answer");
-		var currVal = parseInt(answerVal.firstChild.nodeValue); //TODO: do it properly by holding the value in a variable
-
-		if (direction === 0) {
-			answer.firstChild.nodeValue += "+0";
-		}
-		else if(direction === -1) {
-			answer.firstChild.nodeValue += "+"+value;
-			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(beadShape).webkitTransform);
-			TweenLite.to(beadShape, 1.5, {
-				y: curTransform.m42+51
-			});
-
-			answerVal.firstChild.nodeValue = currVal+value;
-			//self.currVal += value;
-		}
-		else if(direction === 1) {
-			answer.firstChild.nodeValue += "-"+value;
-			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(beadShape).webkitTransform);
-			TweenLite.to(beadShape, 1.5, {
-				y: curTransform.m42-51
-			});
-
-			answerVal.firstChild.nodeValue = currVal-value;
-			//self.currVal -= value;
-		}
-
-		
-	};
-
-	var UpdateBeadBottom = function(direction, value, beadShape) {
-		var answer = document.getElementById("answerTitle");
-		var answerVal = document.getElementById("answer");
-		var currVal = parseInt(answerVal.firstChild.nodeValue);
-
-		if (direction === 0) {
-			answer.firstChild.nodeValue += "+0";
-		}
-		else if(direction === -1) {
-			answer.firstChild.nodeValue += "+"+value;
-			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(beadShape).webkitTransform);
-			TweenLite.to(beadShape, 1.5, {
-				y: curTransform.m42-35
-			});
-			answerVal.firstChild.nodeValue = currVal+value;
-		}
-		else if(direction === 1) {
-			answer.firstChild.nodeValue += "-"+value;
-			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(beadShape).webkitTransform);
-			TweenLite.to(beadShape, 1.5, {
-				y: curTransform.m42+35
-			});
-			answerVal.firstChild.nodeValue = currVal-value;
-		}
-	};*/
-
+abacus.prototype.fillBeads = function() {
 	//Loop through the number of columns the abacus contains
 	for(var i=0; i<this.columns; i++)
 	{
-		// The dummy bead is not displayed
-/*		var dummyBead = new Bead(0);
-		dummyBead.value = 0;
-		var head = dummyBead;*/
 		var head = null;
 
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
@@ -315,7 +162,7 @@ Abacus.prototype.fillBeads = function() {
 
 	// For debugging
 
-	for(var i=0; i<this.topLevelNodeHeads.length; i++)
+/*	for(var i=0; i<this.topLevelNodeHeads.length; i++)
 	{
 		console.log("Column number:"+i);
 		var currBead = this.topLevelNodeHeads[i];
@@ -325,12 +172,14 @@ Abacus.prototype.fillBeads = function() {
 			//currBead.shape.addEventListener("click", function(){move(currBead)}, false);
 			currBead = currBead.beadBelow;
 		}
-	}
-
+	}*/
 }
 
 window.onload = function() {
-	var abacus = new Abacus(7, 2, 5);
-	abacus.fillBeads();
+	var cnAbacus = new abacus("chineseAbacus", 7, 2, 5);
+	cnAbacus.fillBeads();
+
+	var jpAbacus = new abacus("japaneseAbacus", 7, 1, 4);
+	jpAbacus.fillBeads();
 };
 
