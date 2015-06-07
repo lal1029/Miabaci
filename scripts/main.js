@@ -44,16 +44,46 @@ var debug = function(bead) {
 	}
 }
 
-var Bead = function(value, updateBead, options) {
+var Bead = function(value, options, canMoveUp) {
 	this.value = value;
 	this.shape = createBead(options);
-	this.updateBead = updateBead; //Since the beads on top adds by moving downwards while bottom beads adds by moving downwards, score function helps differentiate the top and the bottom
 	this.beadAbove = null;
 	this.beadBelow = null;
+	this.canMoveUp = canMoveUp;
 	var self = this;
 
+	this.moveBead = function() {
+		console.log("hey bead click event registered");
+		// depending on the bead.canMoveUp property, animation bead movement and update the canMoveUp property
+		
+		if(!self.canMoveUp) {
+			//moving the bead down
+			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(self.shape).webkitTransform);
+			TweenLite.to(self.shape, 0.3, {
+				y: curTransform.m42+51
+			},1.8);
+
+			if(self.beadBelow !== null && !self.beadBelow.canMoveUp) {
+				self.beadBelow.moveBead();
+			}
+		}
+		else {
+			//moving bead up
+			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(self.shape).webkitTransform);
+			TweenLite.to(self.shape, 0.3, {
+				y: curTransform.m42-51
+			}, 1.8);
+
+			if(self.beadAbove !== null && self.beadAbove.canMoveUp) {
+				self.beadAbove.moveBead();
+			}		
+		}
+
+	 	self.canMoveUp = !self.canMoveUp;
+	}
+
 	//move function returns 1 if bead moved up, return 0 if it did not move at all, and returns -1 if bead moved down
-	this.move = function() {
+	/*this.move = function() {
 		var direction = 0;
 
 		console.log("\nTrying to move the bead");
@@ -126,18 +156,9 @@ var Bead = function(value, updateBead, options) {
 		}
 
 		self.updateBead(direction, self.value, self.shape);
-	}
+	}*/
 
-	this.shape.addEventListener("click", this.move, false);
-}
-
-
-///InsertBead - Inserting a bead into the head of a doubly-linked list 
-// and return itself
-Bead.prototype.insertBead = function(headBead) {
-	this.beadBelow = headBead;
-	headBead.beadAbove = this;
-	return this;
+	this.shape.addEventListener("click", this.moveBead, false);
 }
 
 var Abacus = function(columns, topBeadCount, bottomBeadCount) {
@@ -149,6 +170,8 @@ var Abacus = function(columns, topBeadCount, bottomBeadCount) {
 	this.bottomBeadCount = bottomBeadCount;
 	this.topLevelNodeHeads = []; 	//TODO:create some simple SVG shape to represent a bead. For now, using CSS
 	this.bottomLevelNodeHeads = [];
+	
+	//TODO: Update these hard coded values for bead positions on the abacus
 	this.beadsXAxis = [500, 430, 357, 283, 210, 140, 65];
 	this.beadYAxisSpaceTop = 20;
 	this.beadYAxisSpaceBottom = 190;
@@ -167,9 +190,17 @@ var Abacus = function(columns, topBeadCount, bottomBeadCount) {
 		});*/
 }
 
+///InsertBead - Inserting a bead into the head of a doubly-linked list 
+// and return itself
+Abacus.prototype.insertBead = function(headBead, newBead) {
+	newBead.beadBelow = headBead;
+	headBead.beadAbove = newBead;
+	return newBead;
+}	
+
 Abacus.prototype.fillBeads = function() {
 
-	var UpdateBeadTop = function(direction, value, beadShape) {
+	/*var UpdateBeadTop = function(direction, value, beadShape) {
 		var answer = document.getElementById("answerTitle");
 		var answerVal = document.getElementById("answer");
 		var currVal = parseInt(answerVal.firstChild.nodeValue); //TODO: do it properly by holding the value in a variable
@@ -225,15 +256,16 @@ Abacus.prototype.fillBeads = function() {
 			});
 			answerVal.firstChild.nodeValue = currVal-value;
 		}
-	};
+	};*/
 
 	//Loop through the number of columns the abacus contains
 	for(var i=0; i<this.columns; i++)
 	{
 		// The dummy bead is not displayed
-		var dummyBead = new Bead(0);
+/*		var dummyBead = new Bead(0);
 		dummyBead.value = 0;
-		var head = dummyBead;
+		var head = dummyBead;*/
+		var head = null;
 
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
 		for (var j=this.topBeadCount-1; j>-1; j--) 
@@ -243,32 +275,46 @@ Abacus.prototype.fillBeads = function() {
 			var beadShapeOptions = {color: '#61AC27', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceTop+(j*beadHeight)};
 
 			var value = Math.pow(10, i)*5;
-			var newBead = new Bead(value, UpdateBeadTop, beadShapeOptions);
+			var newBead = new Bead(value, beadShapeOptions, false);
 			this.element.appendChild(newBead.shape);
-			var insertedNewBead = newBead.insertBead(head);
-			head = insertedNewBead;
+
+			if (head === null) {
+				head = newBead;
+			}
+			else {
+				var insertedNewBead = this.insertBead(head, newBead);
+				head = insertedNewBead;
+			}
 		}
 		this.topLevelNodeHeads.unshift(head);
 
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
-		head = dummyBead;
-		for (var j=0; j<this.bottomBeadCount; j++) 
+		head = null;
+
+		for (var j=this.bottomBeadCount-1; j>-1; j--) 
 		{
 			var beadWidth = 50;
 			var beadHeight = 32;
 			var beadShapeOptions = {color: '#F44336', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom+(j*beadHeight)};
 
 			var value = Math.pow(10, i);
-			var newBead = new Bead(value, UpdateBeadBottom, beadShapeOptions);
+			var newBead = new Bead(value, beadShapeOptions, true);
 			this.element.appendChild(newBead.shape);
-			var insertedNewBead = newBead.insertBead(head);
-			head = insertedNewBead;
+
+			if (head === null) {
+				head = newBead;
+			}
+			else {
+				var insertedNewBead = this.insertBead(head, newBead);
+				head = insertedNewBead;
+			}
 		}
+
 		this.bottomLevelNodeHeads.unshift(head);
 	}
 
 	// For debugging
-	/*
+
 	for(var i=0; i<this.topLevelNodeHeads.length; i++)
 	{
 		console.log("Column number:"+i);
@@ -280,7 +326,7 @@ Abacus.prototype.fillBeads = function() {
 			currBead = currBead.beadBelow;
 		}
 	}
-	*/
+
 }
 
 window.onload = function() {
