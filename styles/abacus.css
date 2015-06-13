@@ -1,8 +1,24 @@
 
-.abacusFrame {
+
+body {
+  background-color: #1d1d1d;
+  color: #999;
+  font-family: Arial, sans-serif;
+  margin-left:20px;
+  
+}
+
+.container {
+  border: 1px solid #666666;
+  overflow: hidden;
+  background: white;
+}
+
+/*.abacusFrame {
   	width: 616px;
   	height: 370px;
   	background: no-repeat;
   	background-image: url(/images/Abacus.png);
   	background-size: 616px 370px;
 }
+*/

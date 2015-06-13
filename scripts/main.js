@@ -256,10 +256,28 @@ abacus.prototype.fillBeads = function() {
 }
 
 window.onload = function() {
+
+	// Drawing the basic abacus frame
+	var rectTL = $("#svgRectangleTL"),
+    rectTR = $("#svgRectangleTR"),
+    rectBL = $("#svgRectangleBL"),
+    rectBR = $("#svgRectangleBR"),
+    //posts = $("#post_1"),
+    posts = $("#post_1, #post_2, #post_3, #post_4, #post_5, #post_6"),
+    tl = new TimelineMax();
+
+	tl.to(rectTL, 2, {scaleX:20}, 1.8)
+	tl.to(rectTR, 2, {scaleY:10}, 1.8)
+	tl.to(rectBR, 2, {scaleX:-20}, 1.8)
+	tl.to(rectBL, 2, {scaleY:-10}, 1.8)
+	tl.to(posts, 2, {scaleY:-16}, 1.8)
+
+	/*
 	var cnAbacus = new abacus("chineseAbacus", 7, 2, 5);
 	cnAbacus.fillBeads();
 
 	var jpAbacus = new abacus("japaneseAbacus", 7, 1, 4);
 	jpAbacus.fillBeads();
+	*/
 };
 
