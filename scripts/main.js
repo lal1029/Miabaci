@@ -9,7 +9,8 @@
  */
 var bead = function(value, options, canMoveUp) {
 	this.value = value;
-	this.shape = this.drawBead(options);
+	//this.shape = this.drawBead(options);
+	this.shape = this.drawSVGBead(options);
 	this.beadAbove = null;
 	this.beadBelow = null;
 	this.canMoveUp = canMoveUp;
@@ -80,6 +81,31 @@ bead.prototype.drawBead = function drawBead(options) {
 }
 
 /**
+ * drawSVGBead - method for drawing the beads dynamically using SVG. 
+ * The shape of the bead is defined as a <symbol> on the mainpage for later use
+ * @param  {[type]} options [description]
+ * @return the bead svg element
+ */
+bead.prototype.drawSVGBead = function drawSVGBead(options) {
+
+	options = options || {};
+	var xPos = options.xPos || 0,
+		yPos = options.yPos || 0,
+		aSVGBead;
+
+	aSVGBead = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+	aSVGBead.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href','#bead');
+	aSVGBead.setAttributeNS(null, "width", 100);
+	aSVGBead.setAttributeNS(null, "height", 100);
+	aSVGBead.setAttributeNS(null, "x", xPos);
+	aSVGBead.setAttributeNS(null, "y", yPos);
+
+	//var svgBoard = document.getElementById("board");
+	//svgBoard.appendChild(aSVGBead);
+	return aSVGBead;
+}
+
+/**
  * abacus - representation of the abacus board
  * @param  string abacusName - name of the abacus     
  * @param  int columns - how many columns the abacus contain
@@ -88,7 +114,7 @@ bead.prototype.drawBead = function drawBead(options) {
  * @return void 
  */
 var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
-	this.element = document.getElementById(abacusName);
+	this.element = document.getElementById("board");
 	this.elementResetButton = document.getElementById(abacusName+"Reset");
 	this.elementResetButton.addEventListener("click", this.reset.bind(this), false);
 	this.elementSubmitNumberButton = document.getElementById("submitNumber");
@@ -100,9 +126,10 @@ var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
 	this.bottomLevelNodeHeads = [];
 	
 	//TODO: Update these hard coded values for bead positions on the abacus
-	this.beadsXAxis = [500, 430, 357, 283, 210, 140, 65];
+	//this.beadsXAxis = [500, 430, 357, 283, 210, 140, 65]; old png based axis
+	this.beadsXAxis = [780, 652, 524, 396, 268, 140];
 	this.beadYAxisSpaceTop = 20;
-	this.beadYAxisSpaceBottom = 190;
+	this.beadYAxisSpaceBottom = 380;
 	this.beadYAxisMovementTop = 71;
 	//this.currVal = 0;
 }
@@ -189,17 +216,19 @@ abacus.prototype.displayNumber = function() {
  * @return {[type]} [description]
  */
 abacus.prototype.fillBeads = function() {
+	var beadWidth = 50;
+	var beadHeight = 40;
+
 	//Loop through the number of columns the abacus contains
 	for(var i=0; i<this.columns; i++)
 	{
 		var head = null;
-
+  
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
 		for (var j=this.topBeadCount-1; j>-1; j--) 
 		{
-			var beadWidth = 50;
-			var beadHeight = 32;
-			var beadShapeOptions = {color: '#61AC27', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceTop+(j*beadHeight)};
+			//var beadShapeOptions = {color: '#61AC27', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceTop+(j*beadHeight)};
+			var beadShapeOptions = {xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceTop+(j*beadHeight)};
 
 			var value = Math.pow(10, i)*5;
 			var newBead = new bead(value, beadShapeOptions, false);
@@ -221,8 +250,9 @@ abacus.prototype.fillBeads = function() {
 		for (var j=this.bottomBeadCount-1; j>-1; j--) 
 		{
 			var beadWidth = 50;
-			var beadHeight = 32;
-			var beadShapeOptions = {color: '#F44336', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom+(j*beadHeight)};
+			var beadHeight = 40;
+			//var beadShapeOptions = {color: '#F44336', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom+(j*beadHeight)};
+			var beadShapeOptions = {xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom-(j*beadHeight)}
 
 			var value = Math.pow(10, i);
 			var newBead = new bead(value, beadShapeOptions, true);
@@ -230,6 +260,7 @@ abacus.prototype.fillBeads = function() {
 
 			if (head === null) {
 				head = newBead;
+				this.bottomLevelNodeHeads.push(head);
 			}
 			else {
 				var insertedNewBead = this.insertBead(head, newBead);
@@ -237,7 +268,7 @@ abacus.prototype.fillBeads = function() {
 			}
 		}
 
-		this.bottomLevelNodeHeads.push(head);
+		//this.bottomLevelNodeHeads.push(head);
 	}
 
 	// For debugging
@@ -262,6 +293,7 @@ window.onload = function() {
     rectTR = $("#svgRectangleTR"),
     rectBL = $("#svgRectangleBL"),
     rectBR = $("#svgRectangleBR"),
+    midPost = $("#mid_post"),
     //posts = $("#post_1"),
     posts = $("#post_1, #post_2, #post_3, #post_4, #post_5, #post_6"),
     tl = new TimelineMax();
@@ -271,13 +303,12 @@ window.onload = function() {
 	tl.to(rectBR, 2, {scaleX:-20}, 1.8)
 	tl.to(rectBL, 2, {scaleY:-10}, 1.8)
 	tl.to(posts, 2, {scaleY:-16}, 1.8)
+	tl.to(midPost, 2, {scaleX:36})
 
-	/*
-	var cnAbacus = new abacus("chineseAbacus", 7, 2, 5);
+	var cnAbacus = new abacus("chineseAbacus", 6, 2, 5);
 	cnAbacus.fillBeads();
 
-	var jpAbacus = new abacus("japaneseAbacus", 7, 1, 4);
-	jpAbacus.fillBeads();
-	*/
+/*	var jpAbacus = new abacus("japaneseAbacus", 7, 1, 4);
+	jpAbacus.fillBeads();*/
 };
 
