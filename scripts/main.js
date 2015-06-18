@@ -124,7 +124,11 @@ var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
 	this.elementResetButton = document.getElementById(abacusName+"Reset");
 	this.elementResetButton.addEventListener("click", this.reset.bind(this), false);
 	this.elementSubmitNumberButton = document.getElementById("submitNumber");
-	this.elementSubmitNumberButton.addEventListener("click", this.displayNumber.bind(this), false);
+	this.elementSubmitNumberButton.addEventListener("click", this.displayRequestedNumber.bind(this), false);
+	this.elementGenerateRandomNumberButton = document.getElementById("randomNumber");
+	this.elementGenerateRandomNumberButton.addEventListener("click", this.generateRandomNumber.bind(this), false);
+	this.elementSubmitGuessButton = document.getElementById("submitGuess");
+	this.elementSubmitGuessButton.addEventListener("click", this.checkSubmittedGuess.bind(this), false);
 	this.columns = columns;
 	this.topBeadCount = topBeadCount;
 	this.bottomBeadCount = bottomBeadCount;
@@ -137,7 +141,19 @@ var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
 	this.beadYAxisSpaceTop = 50;
 	this.beadYAxisSpaceBottom = 410;
 	this.beadYAxisMovementTop = 71;
-	//this.currVal = 0;
+	
+	//Finding out the maximum number the current abacus can hold
+	var findMaxAbacusVal = function(digits){
+		var max = 0;
+		for(var i=0; i<digits; i++)
+		{
+			max+=Math.pow(10, i)*9
+		}
+		return max;
+	}
+
+	this.maxAbacusVal = findMaxAbacusVal(columns);
+	this.displayedNumber = 0;
 }
 
 /**
@@ -152,6 +168,10 @@ abacus.prototype.insertBead = function(headBead, newBead) {
 	return newBead;
 }
 
+/**
+ * reset - resetting the abacus to its original setting
+ * @return {[type]} [description]
+ */
 abacus.prototype.reset = function() {
 	for(var i=0; i<this.topLevelNodeHeads.length; i++) {
 		var currBead = this.topLevelNodeHeads[i];
@@ -168,18 +188,33 @@ abacus.prototype.reset = function() {
 	}
 }
 
+abacus.prototype.generateRandomNumber = function() {
+	var max = this.maxAbacusVal+1,
+		min = 1;
+	var randInt = Math.round(Math.random() * (max - min) + min); //[min, max)
+	this.displayedNumber = randInt;
+	this.displayNumber(randInt)
+}
+
+abacus.prototype.checkSubmittedGuess = function() {
+	var guess = document.getElementById("guess").value;
+	guess = parseInt(guess);
+	var guessStatus = document.getElementById("guessStatus");
+
+	if (guess === this.displayedNumber) {
+		guessStatus.firstChild.nodeValue = "Correct!";
+	}
+	else {
+		guessStatus.firstChild.nodeValue = "Incorrect";
+	}
+}
+
 /**
  * displayNumber - given a number, the abacus board will correctly display the configuration of the beads
  * @param  int number - the value the abacus board needs to display
  * @return void
  */
-abacus.prototype.displayNumber = function() {
-	//TODO: later on adding back the number parameter
-	var number = document.getElementById("number").value;
-	number = parseInt(number);
-
-	console.log("Number to display is: "+number);
-
+abacus.prototype.displayNumber = function(number) {
 	//Reset the abacus board
 	this.reset();
 
@@ -215,7 +250,17 @@ abacus.prototype.displayNumber = function() {
 	 		number = number%place; //the remainder will be used as the next value
 	 	}
 	}
-}	
+}
+
+abacus.prototype.displayRequestedNumber = function(){
+	
+	//TODO: later on adding back the number parameter
+	var number = document.getElementById("number").value;
+	number = parseInt(number);
+	console.log("Number to display is: "+number);
+
+	this.displayNumber(number);
+}
 
 /**
  * fillBeads - 
