@@ -14,32 +14,38 @@ var bead = function(value, options, canMoveUp) {
 	this.beadAbove = null;
 	this.beadBelow = null;
 	this.canMoveUp = canMoveUp;
+	this.currPos = options.yPos;
 	var self = this;
 
 	this.moveBead = function() {
-		
+
 		// depending on the bead.canMoveUp property, animation bead movement and update the canMoveUp property
 		if(!self.canMoveUp) {
 			//moving the bead down
 			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(self.shape).webkitTransform);
 			TweenLite.to(self.shape, 0.3, {
-				y: curTransform.m42+51
+				y: self.currPos+48
 			},1.8);
 
 			if(self.beadBelow !== null && !self.beadBelow.canMoveUp) {
 				self.beadBelow.moveBead();
 			}
+
+			
+			self.currPos += 48;
 		}
 		else {
 			//moving bead up
 			var curTransform = new WebKitCSSMatrix(window.getComputedStyle(self.shape).webkitTransform);
 			TweenLite.to(self.shape, 0.3, {
-				y: curTransform.m42-51
+				y: self.currPos-48
 			}, 1.8);
 
 			if(self.beadAbove !== null && self.beadAbove.canMoveUp) {
 				self.beadAbove.moveBead();
-			}		
+			}
+
+			self.currPos -= 48;		
 		}
 
 	 	self.canMoveUp = !self.canMoveUp;
@@ -95,10 +101,12 @@ bead.prototype.drawSVGBead = function drawSVGBead(options) {
 
 	aSVGBead = document.createElementNS('http://www.w3.org/2000/svg', 'use');
 	aSVGBead.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href','#bead');
-	aSVGBead.setAttributeNS(null, "width", 100);
-	aSVGBead.setAttributeNS(null, "height", 100);
-	aSVGBead.setAttributeNS(null, "x", xPos);
-	aSVGBead.setAttributeNS(null, "y", yPos);
+	aSVGBead.setAttributeNS(null, "width", 70);
+	aSVGBead.setAttributeNS(null, "height", 50);
+
+	TweenLite.set(aSVGBead, {x:xPos, y:yPos});
+	//aSVGBead.setAttributeNS(null, "x", xPos);
+	//aSVGBead.setAttributeNS(null, "y", yPos);
 
 	//var svgBoard = document.getElementById("board");
 	//svgBoard.appendChild(aSVGBead);
@@ -127,9 +135,9 @@ var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
 	
 	//TODO: Update these hard coded values for bead positions on the abacus
 	//this.beadsXAxis = [500, 430, 357, 283, 210, 140, 65]; old png based axis
-	this.beadsXAxis = [780, 652, 524, 396, 268, 140];
-	this.beadYAxisSpaceTop = 20;
-	this.beadYAxisSpaceBottom = 380;
+	this.beadsXAxis = [795, 667, 539, 411, 283, 155]; //Placing the beads from the right most axist fo the left
+	this.beadYAxisSpaceTop = 50;
+	this.beadYAxisSpaceBottom = 250;
 	this.beadYAxisMovementTop = 71;
 	//this.currVal = 0;
 }
@@ -223,7 +231,8 @@ abacus.prototype.fillBeads = function() {
 	for(var i=0; i<this.columns; i++)
 	{
 		var head = null;
-  
+  		
+  		console.log("Filling top beads");
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
 		for (var j=this.topBeadCount-1; j>-1; j--) 
 		{
@@ -246,13 +255,13 @@ abacus.prototype.fillBeads = function() {
 
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
 		head = null;
-
+		console.log("Filling bottom beads");
 		for (var j=this.bottomBeadCount-1; j>-1; j--) 
 		{
 			var beadWidth = 50;
 			var beadHeight = 40;
 			//var beadShapeOptions = {color: '#F44336', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom+(j*beadHeight)};
-			var beadShapeOptions = {xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom-(j*beadHeight)}
+			var beadShapeOptions = {xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom+(j*beadHeight)};
 
 			var value = Math.pow(10, i);
 			var newBead = new bead(value, beadShapeOptions, true);
@@ -260,7 +269,7 @@ abacus.prototype.fillBeads = function() {
 
 			if (head === null) {
 				head = newBead;
-				this.bottomLevelNodeHeads.push(head);
+				//this.bottomLevelNodeHeads.push(head);
 			}
 			else {
 				var insertedNewBead = this.insertBead(head, newBead);
@@ -268,7 +277,7 @@ abacus.prototype.fillBeads = function() {
 			}
 		}
 
-		//this.bottomLevelNodeHeads.push(head);
+		this.bottomLevelNodeHeads.push(head);
 	}
 
 	// For debugging
