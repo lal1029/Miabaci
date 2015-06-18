@@ -31,7 +31,6 @@ var bead = function(value, options, canMoveUp) {
 				self.beadBelow.moveBead();
 			}
 
-			
 			self.currPos += 48;
 		}
 		else {
@@ -64,7 +63,6 @@ bead.prototype.drawBead = function drawBead(options) {
 	var dotWidth = options.dotWidth || 50,
 		dotHeight = options.dotHeight || 32, 
 		color = options.color || 'Brown',
-		//element = options.element || document.createElement("div"),
 		xPos = options.xPos || 0,
 		yPos = options.yPos || 0,
 		opacity = options.opacity || 0.9,
@@ -137,7 +135,7 @@ var abacus = function(abacusName, columns, topBeadCount, bottomBeadCount) {
 	//this.beadsXAxis = [500, 430, 357, 283, 210, 140, 65]; old png based axis
 	this.beadsXAxis = [795, 667, 539, 411, 283, 155]; //Placing the beads from the right most axist fo the left
 	this.beadYAxisSpaceTop = 50;
-	this.beadYAxisSpaceBottom = 250;
+	this.beadYAxisSpaceBottom = 410;
 	this.beadYAxisMovementTop = 71;
 	//this.currVal = 0;
 }
@@ -230,13 +228,11 @@ abacus.prototype.fillBeads = function() {
 	//Loop through the number of columns the abacus contains
 	for(var i=0; i<this.columns; i++)
 	{
-		var head = null;
-  		
-  		console.log("Filling top beads");
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
+		//The head of the top bead will be the second bead from the top
+		var head = null;
 		for (var j=this.topBeadCount-1; j>-1; j--) 
 		{
-			//var beadShapeOptions = {color: '#61AC27', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceTop+(j*beadHeight)};
 			var beadShapeOptions = {xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceTop+(j*beadHeight)};
 
 			var value = Math.pow(10, i)*5;
@@ -254,14 +250,13 @@ abacus.prototype.fillBeads = function() {
 		}
 
 		//Inserting the top-level beads where the initial position is the two beads aligning to the top
+		//The head of the bottom bead will be the bead near the top 
 		head = null;
-		console.log("Filling bottom beads");
-		for (var j=this.bottomBeadCount-1; j>-1; j--) 
+		for (var j=0; j<this.bottomBeadCount; j++) 
 		{
 			var beadWidth = 50;
 			var beadHeight = 40;
-			//var beadShapeOptions = {color: '#F44336', dotWidth: beadWidth, dotHeight: beadHeight, xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom+(j*beadHeight)};
-			var beadShapeOptions = {xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom+(j*beadHeight)};
+			var beadShapeOptions = {xPos:this.beadsXAxis[i], yPos:this.beadYAxisSpaceBottom-(j*beadHeight)};
 
 			var value = Math.pow(10, i);
 			var newBead = new bead(value, beadShapeOptions, true);
@@ -298,19 +293,19 @@ abacus.prototype.fillBeads = function() {
 window.onload = function() {
 
 	// Drawing the basic abacus frame
-	var rectTL = $("#svgRectangleTL"),
-    rectTR = $("#svgRectangleTR"),
-    rectBL = $("#svgRectangleBL"),
-    rectBR = $("#svgRectangleBR"),
+	var frame = $("#frame"),
+    //rectTR = $("#svgRectangleTR"),
+    //rectBL = $("#svgRectangleBL"),
+    //rectBR = $("#svgRectangleBR"),
     midPost = $("#mid_post"),
-    //posts = $("#post_1"),
     posts = $("#post_1, #post_2, #post_3, #post_4, #post_5, #post_6"),
     tl = new TimelineMax();
 
-	tl.to(rectTL, 2, {scaleX:20}, 1.8)
-	tl.to(rectTR, 2, {scaleY:10}, 1.8)
-	tl.to(rectBR, 2, {scaleX:-20}, 1.8)
-	tl.to(rectBL, 2, {scaleY:-10}, 1.8)
+	//tl.to(rectTL, 2, {scaleX:20}, 1.8)
+	//tl.to(rectTR, 2, {scaleY:10}, 1.8)
+	//tl.to(rectBR, 2, {scaleX:-20}, 1.8)
+	//tl.to(rectBL, 2, {scaleY:-10}, 1.8)
+	tl.to(frame, 2, {attr:{rx:"30"}})
 	tl.to(posts, 2, {scaleY:-16}, 1.8)
 	tl.to(midPost, 2, {scaleX:36})
 
