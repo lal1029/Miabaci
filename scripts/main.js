@@ -103,8 +103,6 @@ bead.prototype.drawSVGBead = function drawSVGBead(options) {
 	aSVGBead.setAttributeNS(null, "height", 50);
 
 	TweenLite.set(aSVGBead, {x:xPos, y:yPos});
-	//aSVGBead.setAttributeNS(null, "x", xPos);
-	//aSVGBead.setAttributeNS(null, "y", yPos);
 
 	//var svgBoard = document.getElementById("board");
 	//svgBoard.appendChild(aSVGBead);
